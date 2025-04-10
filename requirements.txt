@@ -1,0 +1,2 @@
+# project dependencies
+yt_dlp

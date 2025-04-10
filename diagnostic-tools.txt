@@ -1,0 +1,6 @@
+# diagnostic tools
+python-lsp-server
+mypy
+mypy-extensions
+pylsp-mypy
+pylint
