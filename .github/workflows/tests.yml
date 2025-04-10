@@ -1,0 +1,27 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  simple_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup uv
+        run: wget -qO- https://astral.sh/uv/install.sh | sh
+
+      - name: Setup environment
+        run: uv venv
+
+      - name: Activate environment
+        run: source .venv/bin/activate
+
+      - name: Install dependencies
+        run: uv pip install -r requirements.txt
+
+      - name: Run tests
+        run: python test.py
