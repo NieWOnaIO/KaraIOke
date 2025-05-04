@@ -34,15 +34,11 @@ class Engine:
         if not os.path.isdir(path):
             return False
         
-        folder_name = os.path.basename(os.path.normpath(path))
-        output_path = os.path.join(r"D:\processed_songs", folder_name)
-        os.makedirs(output_path, exist_ok=True)
-
         task = self.manager.dict({
             "is_done": False,
             "has_failed": False,
             "input_path": os.path.join(path, "audio.mp3"),
-            "output_path": output_path,
+            "output_path": path,
             "expire_time": None
         })
 
@@ -53,7 +49,7 @@ class Engine:
     
     def run(self):
         """
-        Main Engine loop, handles switching tasks and processing them in non-blocking way
+        Main Engine loop, handles switching tasks and processing them, processing doesn't block new enqueues
         """
         print("Engine started.")
         while True:
@@ -84,7 +80,7 @@ class Engine:
             demucs.separate.main(["--mp3", "--two-stems", "vocals", "-o", task["output_path"], task["input_path"]])
             task["is_done"] = True
             task["has_failed"] = False
-            task["expire_time"] = time.time() + 6
+            task["expire_time"] = time.time() + 600
         except Exception:
             task["is_done"] = True
             task["has_failed"] = True
@@ -106,6 +102,6 @@ class Engine:
             try:
                 shutil.rmtree(path)
                 print("Removed " + path + " from memory")
-            except:
-                print("There was an error removing " + path)
+            except Exception as e:
+                print("There was an error removing " + path + " error: " + e)
         return len(to_del)
