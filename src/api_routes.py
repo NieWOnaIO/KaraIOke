@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 import json
 
 
@@ -15,7 +16,7 @@ async def _(link):
     return {"song_id": ""}
 
 @app.get("/v1/songinfo/{song_id}")
-async def get_songinfo(song_id: str) -> dict:
+async def get_songinfo(song_id: str):
     """
     Returns:
         json: whether song is ready to be downloaded from the server, expiry date...
@@ -24,12 +25,16 @@ async def get_songinfo(song_id: str) -> dict:
     return song
 
 @app.get("/v1/songs/{song_id}")
-async def _():
+async def get_songfile(song_id: str):
     """
     Returns:
         payload: processed song along with metadata
     """
-    raise NotImplementedError()
+    return FileResponse(
+        path=f"downloads/{song_id}/raw_song.mp3",
+        media_type="audio/mpeg",
+        filename="raw_song.mp3"
+    )
 
 @app.get("/v1/search/{query}")
 async def _():
