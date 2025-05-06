@@ -3,8 +3,10 @@ from fastapi.responses import FileResponse
 import json
 from search import Search
 
+from engine import Engine
 
 app = FastAPI()
+engine = Engine()
 
 @app.post("/v1/songs")
 async def _(link):

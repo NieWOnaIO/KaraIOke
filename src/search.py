@@ -9,11 +9,11 @@ class Search:
         """
         self.query: str = query
         self.results: List[dict] = []
-        
+        self.search_query()
     
     def search_query(self) -> bool:
         """
-        Queries YouTube and saves top 5 results
+        Queries YouTube and saves top 20 results
 
         Returns:
             bool: Was query successfull
@@ -24,31 +24,32 @@ class Search:
                 'extract_flat': 'in_playlist',
                 'skip_download': True,
                 'format': 'bestaudio/best',
-                'default_search': 'ytsearch10',  
+                'default_search': 'ytsearch30',  
                 'noplaylist': True
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(self.query, download=False)
 
-                if 'entries' in info:
-                    self.results = []
-                    for entry in info['entries']:
+                if 'entries' not in info:
+                    return False
+                self.results = []
+                for entry in info['entries']:
                         
-                        if not entry.get("id") or not entry.get("title"):
-                            continue
+                    if not entry.get("id") or not entry.get("title"):
+                        continue
 
-                        self.results.append({
-                            "url": f"https://www.youtube.com/watch?v={entry.get('id')}",
-                            "title": entry.get("track") or entry.get("title") or "Unknown"
-                        })
+                    self.results.append({
+                        "url": f"https://www.youtube.com/watch?v={entry.get('id')}",
+                        "title": entry.get("track") or entry.get("title") or "Unknown"
+                    })
 
-                        if len(self.results) >= 5:
-                            break
+                    if len(self.results) >= 20:
+                        break
 
-                    return bool(self.results)
+                return bool(self.results)
 
-                return False
+
         except Exception as e:
             print(f"Error during search: {e}")
             return False
@@ -62,5 +63,3 @@ class Search:
             str: JSON string of results
         """
         return json.dumps(self.results, indent=2)
-    
-    
