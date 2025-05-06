@@ -1,23 +1,26 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 import json
-from search import Search
-
 from engine import Engine
+from search import Search
+from download import Download
+
 
 app = FastAPI()
 engine = Engine()
 
 @app.post("/v1/songs")
-async def _(link):
+async def process_song(link):
     """
     Receives link to a song and directs it to download
 
     Returns:
         json: unique song id based on youtube url
     """
-
-    return {"song_id": ""}
+    download = Download(link)
+    song_id = download.get_name()
+    engine.enqueue(f"downloads/{song_id}/audio.mp3")
+    return {"song_id": song_id}
 
 @app.get("/v1/songinfo/{song_id}")
 async def get_songinfo(song_id: str):
@@ -25,8 +28,8 @@ async def get_songinfo(song_id: str):
     Returns:
         json: whether song is ready to be downloaded from the server, expiry date...
     """
-    song = json.load(f"downloads/{song_id}/metadata.json")
-    return song
+    songinfo = json.load(f"downloads/{song_id}/metadata.json")
+    return songinfo
 
 @app.get("/v1/songs/{song_id}")
 async def get_songfile(song_id: str):
