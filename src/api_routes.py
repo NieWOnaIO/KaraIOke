@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 import json
+from search import Search
 
 
 app = FastAPI()
@@ -13,6 +14,7 @@ async def _(link):
     Returns:
         json: unique song id based on youtube url
     """
+
     return {"song_id": ""}
 
 @app.get("/v1/songinfo/{song_id}")
@@ -37,11 +39,11 @@ async def get_songfile(song_id: str):
     )
 
 @app.get("/v1/search/{query}")
-async def _():
+async def search_song(query: str):
     """
     Returns:
         json: Search results from a query
     """
-
-    
-    raise NotImplementedError()
+    search = Search(query)
+    search.search_query()
+    return search.serialize()
