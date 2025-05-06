@@ -26,7 +26,7 @@ class Task:
         """
         Tells if processing is done
         """
-        return self.__worker.is_done()
+        return self.__worker.done()
     
     def cleanup(self, now) -> bool:
         """
