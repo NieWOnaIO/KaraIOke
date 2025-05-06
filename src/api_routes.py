@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import json
 
 
 app = FastAPI()
@@ -14,12 +15,13 @@ async def _(link):
     return {"song_id": ""}
 
 @app.get("/v1/songinfo/{song_id}")
-async def _():
+async def get_songinfo(song_id: str) -> dict:
     """
     Returns:
         json: whether song is ready to be downloaded from the server, expiry date...
     """
-    raise NotImplementedError()
+    song = json.load(f"downloads/{song_id}/metadata.json")
+    return song
 
 @app.get("/v1/songs/{song_id}")
 async def _():
