@@ -1,6 +1,8 @@
 from fastapi import FastAPI
+from engine import Engine
 
 app = FastAPI()
+engine = Engine()
 
 @app.post("/v1/songs")
 async def _():
@@ -35,3 +37,6 @@ async def _():
         json: Search results from a query
     """
     raise NotImplementedError()
+
+    
+    

@@ -9,7 +9,7 @@ class Search:
         """
         self.query: str = query
         self.results: List[dict] = []
-        
+        self.search_query()
     
     def search_query(self) -> bool:
         """
@@ -63,4 +63,3 @@ class Search:
             str: JSON string of results
         """
         return json.dumps(self.results, indent=2)
-    
