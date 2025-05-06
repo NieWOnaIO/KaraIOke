@@ -1,16 +1,17 @@
 from fastapi import FastAPI
 
+
 app = FastAPI()
 
 @app.post("/v1/songs")
-async def _():
+async def _(link):
     """
     Receives link to a song and directs it to download
 
     Returns:
         json: unique song id based on youtube url
     """
-    raise NotImplementedError()
+    return {"song_id": ""}
 
 @app.get("/v1/songinfo/{song_id}")
 async def _():
@@ -34,4 +35,6 @@ async def _():
     Returns:
         json: Search results from a query
     """
+
+    
     raise NotImplementedError()
