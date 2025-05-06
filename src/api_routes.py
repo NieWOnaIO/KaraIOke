@@ -32,13 +32,16 @@ async def process_song(link):
         await asyncio.sleep(1)
 
     if not success:
-        return {"status": "download timeout", "song_id": ""}
+        return HTTPException(status_code=504, detail="Downloading timeout")
     
     try:
         song_id = download.get_name()
+    except Exception as e:
+        return HTTPException(status_code=502, detail=e)
+    try:
         engine.enqueue(f"downloads/{song_id}/audio.mp3")
     except Exception as e:
-        return {"status": e, "song_id": ""}
+        return HTTPException(status_code=400, detail=e)
     
     timeout_process = 180
     success = False
@@ -50,9 +53,9 @@ async def process_song(link):
         await asyncio.sleep(1)
     
     if not success:
-        return {"status": "processing timeout", "song_id": ""}
+        return HTTPException(status_code=504, detail="Processing timeout")
     
-    return {"status": "success", "song_id": song_id}
+    return {"song_id": song_id}
 
 @app.get("/v1/songinfo/{song_id}")
 async def get_songinfo(song_id: str):
@@ -89,5 +92,5 @@ async def search_song(query: str):
         json: Search results from a query
     """
     search = Search(query)
-    # errors checking
+    # error handling
     return search.serialize()
