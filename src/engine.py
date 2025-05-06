@@ -1,15 +1,51 @@
-from multiprocessing import Manager, Process
-from typing import List
+from concurrent import futures
 import time
 import os
 import shutil
+import demucs.separate
+
+class Task:
+    """
+    Class representing a single task
+    """
+    __threads = 1
+    __executor = futures.ThreadPoolExecutor(__threads)
+
+    def __init__(self, path):
+        self.__expire_time = time.time() + 600
+        self.__path = path
+        self.__worker = Task.__executor.submit(self.__process_wrapper)
+
+    def __process_wrapper(self):
+        """
+        Processes a single song inside queue
+        """
+        demucs.separate.main(["--mp3", "--two-stems", "vocals", "-o", self.__path, os.path.join(self.__path, "audio.mp3")])
+
+    def is_done(self) -> bool:
+        """
+        Tells if processing is done
+        """
+        return self.__worker.is_done()
+    
+    def cleanup(self, now) -> bool:
+        """
+        Deletes directories and songs when they expire
+        """
+        if self.__expire_time <= now:
+            try:
+                shutil.rmtree(self.__path)
+                return True
+            except:
+                return False
+        return False
+
 
 class Engine:
     """
     Main engine class <br>
     Usage: <br>
         - Create engine: e = Engine() <br>
-        - Run the engine: e.run() <br>
         - Enqueue songs on demand via e.enqueue()
     """
     def __init__(self):
@@ -17,11 +53,9 @@ class Engine:
         Holds a collection of tasks left to complete, completed ones,
         and processes them whenever possible.
         """
-        self.manager = Manager()
-        self.task_queue: List[dict] = self.manager.list()
-        self.processed_songs: List[dict] = self.manager.list()
+        self.__tasks: dict[str, Task] = {}
 
-    def enqueue(self, path: str) -> bool:
+    def enqueue(self, path: str):
         """
         Adds a song to queue via its path, starts processing if first in queue
 
@@ -32,61 +66,23 @@ class Engine:
             bool: Was enqueueing successfull
         """
         if not os.path.isdir(path):
-            return False
-        
-        task = self.manager.dict({
-            "is_done": False,
-            "has_failed": False,
-            "input_path": os.path.join(path, "audio.mp3"),
-            "output_path": path,
-            "expire_time": None
-        })
+            raise Exception("Path expected")
 
-        self.task_queue.append(task)
-        return True
+        if path in self.__tasks:
+            return
+
+        self.__cleanup_expired()
+        self.__tasks[path] = Task(path)
 
 
-    
-    def run(self):
+    def is_done(self, path) -> bool:
         """
-        Main Engine loop, handles switching tasks and processing them, processing doesn't block new enqueues
+        Tells if song is ready to be downloaded
         """
-        print("Engine started.")
-        while True:
-            if len(self.task_queue) == 0:
-                time.sleep(1)
-                continue
-
-            task = self.task_queue.pop(0)
-            print(f"Processing: {task['input_path']}")
-            process = Process(target=Engine._process_wrapper, args=(task,))
-            process.start()
-            process.join()
-
-            if task["is_done"]:
-                self.processed_songs.append(task)
-            
-            self._cleanup_expired()
+        return self.__tasks[path].is_done()
 
 
-    
-    @staticmethod
-    def _process_wrapper(task: dict):
-        """
-        Processes a single song inside queue
-        """
-        try:
-            import demucs.separate
-            demucs.separate.main(["--mp3", "--two-stems", "vocals", "-o", task["output_path"], task["input_path"]])
-            task["is_done"] = True
-            task["has_failed"] = False
-            task["expire_time"] = time.time() + 600
-        except Exception:
-            task["is_done"] = True
-            task["has_failed"] = True
-            task["expire_time"] = time.time() + 3600
-    
-    def _cleanup_expired(self) -> int:
+    def __cleanup_expired(self) -> int:
         """
         Deletes songs that have expired to save space
 
@@ -94,14 +90,12 @@ class Engine:
             int: Number of deleted songs
         """
         now = time.time()
-        to_del = []
-        for song in self.processed_songs:
-            if song["expire_time"] <= now:
-                to_del.append(song["output_path"])
-        for path in to_del:
-            try:
-                shutil.rmtree(path)
-                print("Removed " + path + " from memory")
-            except Exception as e:
-                print("There was an error removing " + path + " error: " + e)
-        return len(to_del)
+        to_delete = []
+        for path, task in self.__tasks.items():
+            if task.cleanup(now):
+                to_delete.append(path)
+
+        for path in to_delete:
+            self.__tasks.pop(path)
+
+        return len(to_delete)

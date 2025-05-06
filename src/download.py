@@ -31,7 +31,7 @@ class Download:
         self.__name = sha256(link.encode()).hexdigest()
         song_dir = f"downloads/{self.__name}"
         makedirs(song_dir, exist_ok=True)
-        song_file = f"{song_dir}/raw_song.%(ext)s"
+        song_file = f"{song_dir}/audio.%(ext)s"
         metadata_file = f"{song_dir}/metadata.json"
 
         ytdl_opts = {
