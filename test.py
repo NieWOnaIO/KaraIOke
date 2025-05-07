@@ -15,12 +15,14 @@ class TestSearch(unittest.TestCase):
         query = "Reverse Sound Effect - Copyright free sound effects"
         result = Search(query).results
         s1, s2 = query.split(" ")[:2]
+
         self.assertTrue(re.search(rf'\b{s1}\b', result[0]["title"], re.IGNORECASE))
         self.assertTrue(re.search(rf'\b{s2}\b', result[0]["title"], re.IGNORECASE))
         self.assertEqual(len(result), 20)
+
         for res in result:
             self.assertTrue(bool(re.match(r"(https?://)?(www\.)?(youtube\.com/watch\?v=|youtu\.be/)[\w\-]{11}", res["url"])))
-        time.sleep(30)
+        
 
 class TestDownload(unittest.TestCase):
     def test_song_download(self):
@@ -70,7 +72,8 @@ class TestEngine(unittest.TestCase):
         self.assertGreaterEqual(os.path.getsize(vocals_path), 128)
         self.assertGreaterEqual(os.path.getsize(no_vocals_path), 128)
         
+        shutil.rmtree(os.path.abspath("downloads"))
 
 if __name__ == '__main__':
     unittest.main()
-    shutil.rmtree(os.path.abspath("downloads"))
+    
