@@ -16,7 +16,7 @@ engine = Engine()
 @app.post("/v1/songs")
 async def process_song(link):
     """
-    Receives link to a song and directs it to download
+    Receives link to a song and directs it to download and process
 
     Returns:
         json: unique song id based on youtube url
@@ -63,10 +63,13 @@ async def get_songinfo(song_id: str):
     Returns:
         json: whether song is ready to be downloaded from the server, expiry date...
     """
-    path = f"downloads/{song_id}/metadata.json"
+    path = f"downloads/{song_id}"
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail="Path does not exist")
 
+    if engine.is_done(path):
+        return {"status": "not_ready"}
+    
     file = open(path, "r")
     metadata = json.load(file)
     file.close()
