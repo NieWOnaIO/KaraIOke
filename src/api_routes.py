@@ -39,7 +39,7 @@ async def process_song(link):
     except Exception as e:
         return HTTPException(status_code=502, detail=e)
     try:
-        engine.enqueue(f"downloads/{song_id}/audio.mp3")
+        engine.enqueue(f"downloads/{song_id}")
     except Exception as e:
         return HTTPException(status_code=400, detail=e)
     
@@ -47,7 +47,7 @@ async def process_song(link):
     success = False
 
     for _ in range(timeout_process):
-        if download.is_ready():
+        if engine.is_done(f"downloads/{song_id}"):
             success = True
             break
         await asyncio.sleep(1)
@@ -67,7 +67,10 @@ async def get_songinfo(song_id: str):
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail="Path does not exist")
 
-    return json.load(path)
+    file = open(path, "r")
+    metadata = json.load(file)
+    file.close()
+    return metadata
 
 @app.get("/v1/songs/{song_id}")
 async def get_songfile(song_id: str):
@@ -75,15 +78,16 @@ async def get_songfile(song_id: str):
     Returns:
         payload: processed song along with metadata
     """
-    path = f"downloads/{song_id}/audio.mp3"
-    if not os.path.exists(path):
+    base_path = f"downloads/{song_id}/htdemucs/audio"
+    if not os.path.exists(f"{base_path}/vocals.mp3") or\
+        not os.path.exists(f"{base_path}/no_vocals.mp3"):
         raise HTTPException(status_code=404, detail="Path does not exist")
     
-    return FileResponse(
-        path=f"downloads/{song_id}/audio.mp3",
-        media_type="audio/mpeg",
-        filename="audio.mp3"
-    )
+    return {
+        "vocals": f"{base_path}/vocals.mp3",
+        "no_vocals": f"{base_path}/no_vocals.mp3",
+        "metadata": f"downloads/{song_id}/metadata.json"
+    }
 
 @app.get("/v1/search/{query}")
 async def search_song(query: str):
