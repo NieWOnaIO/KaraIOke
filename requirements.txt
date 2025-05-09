@@ -1,2 +1,8 @@
 # project dependencies
 yt_dlp
+fastapi
+uvicorn[standard]
+
+# diagnostic/enchancing tools
+pylint
+ruff

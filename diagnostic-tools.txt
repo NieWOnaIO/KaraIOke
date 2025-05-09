@@ -3,4 +3,6 @@ python-lsp-server
 mypy
 mypy-extensions
 pylsp-mypy
-pylint
+
+# helpers
+bpython

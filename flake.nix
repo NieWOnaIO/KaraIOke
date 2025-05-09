@@ -1,7 +1,6 @@
 {
   inputs = {
-    # commit specified to avoid rebuilding of packages
-    nixpkgs.url = "github:NixOS/nixpkgs/5bf7fe9dd333ea6e9220b92fdb12b03185279be2";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flakeUtils.url = "github:numtide/flake-utils";
   };
 
