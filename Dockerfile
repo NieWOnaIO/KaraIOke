@@ -9,6 +9,9 @@ RUN apt upgrade -y
 # aeneas deps
 RUN apt install -y ffmpeg espeak espeak-data libespeak1 libespeak-dev
 RUN rm -rf /var/lib/apt/lists/*
+# first line makes torch install without cuda
+# for local environment and tests
+RUN sed -i '1d' /code/requirements.txt
 # is really much faster than pip
 RUN pip install --no-cache-dir --upgrade uv
 RUN uv pip install --no-cache-dir --upgrade --system -r /code/requirements.txt
