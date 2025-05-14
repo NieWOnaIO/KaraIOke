@@ -4,8 +4,16 @@ WORKDIR /code
 
 COPY ./requirements.txt /code/requirements.txt
 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
-RUN pip install --no-cache-dir --upgrade demucs
+RUN apt update -y
+RUN apt upgrade -y
+# aeneas deps
+RUN apt install -y ffmpeg espeak espeak-data libespeak1 libespeak-dev
+RUN rm -rf /var/lib/apt/lists/*
+# is really much faster than pip
+RUN pip install --no-cache-dir --upgrade uv
+RUN uv pip install --no-cache-dir --upgrade --system -r /code/requirements.txt
+# this needs to be separate and yes, uv can't install this for some reason
+RUN pip install --no-cache-dir --upgrade aeneas
 
 COPY ./src /code
 EXPOSE 8000
