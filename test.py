@@ -4,10 +4,11 @@ import shutil
 import unittest
 import time
 
-from sys import path
+from sys import path, argv
+from os.path import abspath
 from pathlib import Path
 
-path.insert(0, os.path.abspath(Path(os.curdir) / ".."))
+path.insert(0, abspath(Path(argv[0]) / "../.."))
 
 from src.search import Search
 from src.download import Download
