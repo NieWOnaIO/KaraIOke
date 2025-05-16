@@ -57,7 +57,9 @@ class Download:
                 with open(metadata_file, "w") as output:
                     json.dump(data, output, indent=4)
 
-            self.__downloader = self.__executor.submit(ytdl.download, [link])
+            self.__downloader = self.__executor.submit(
+                ytdl.download, [link]
+            )
             self.__informator = self.__executor.submit(helper)
 
     def is_ready(self) -> bool:
