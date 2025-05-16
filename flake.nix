@@ -1,6 +1,7 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     flakeUtils.url = "github:numtide/flake-utils";
   };
 
@@ -17,7 +18,10 @@
           stdenv.cc.cc.lib
           glib
 
-          python313
+          # python313
+          python39
+          ffmpeg
+
           uv
         ];
         ld_path = "${pkgs.lib.makeLibraryPath buildInputs}";

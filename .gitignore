@@ -178,3 +178,4 @@ cython_debug/
 *.swo
 *.bck
 .direnv
+separated/

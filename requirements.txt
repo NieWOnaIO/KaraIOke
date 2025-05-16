@@ -1,7 +1,10 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 # project dependencies
 yt_dlp
 fastapi
 uvicorn[standard]
+demucs
 
 # diagnostic/enchancing tools
 pylint
