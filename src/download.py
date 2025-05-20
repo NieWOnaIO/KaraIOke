@@ -1,3 +1,8 @@
+import yt_dlp  # type: ignore
+from hashlib import sha256
+from concurrent import futures
+import os
+from multiprocessing import cpu_count
 import json
 import os
 from concurrent import futures
@@ -36,13 +41,17 @@ class Download:
         """
         self.link = link
         self.__name = sha256(link.encode()).hexdigest()
-        song_dir = f"{DOWNLOADS_PATH}/{self.__name}"
+        song_dir = f"downloads/{self.__name}"
+        
+        if os.path.isdir(song_dir):
+            def do_nothing():
+                ...
 
-        if os.path.exists(song_dir):
-            self.__worker = self.__executor.submit(do_nothing)
+            self.__downloader = self.__executor.submit(do_nothing)
+            self.__informator = self.__executor.submit(do_nothing)
             return
 
-        os.makedirs(song_dir)
+        os.makedirs(song_dir, exist_ok=True)
         song_file = f"{song_dir}/audio.%(ext)s"
         metadata_file = f"{song_dir}/metadata.json"
 
