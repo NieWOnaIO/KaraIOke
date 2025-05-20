@@ -8,8 +8,10 @@ from aeneas.executetask import ExecuteTask
 from aeneas.task import Task
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from langdetect import detect
-
+import undetected_chromedriver as uc
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import time
 
 class Lyrics:
     """
@@ -53,7 +55,7 @@ class Lyrics:
                 file.write(lyrics)
         except Exception as e:
             self.success = False
-            return print(str(e))
+            return print(f"wrapper: {str(e)}")
 
         try:
             language = detect(lyrics)
@@ -74,11 +76,11 @@ class Lyrics:
             try:
                 os.remove(os.path.join(self.path, "lyrics.txt"))
             except Exception as e:
-                return print(str(e))
+                print(f"remover: {str(e)}")
 
         except Exception as e:
             self.success = False
-            return print(str(e))
+            return print(f"ananas: {str(e)}")
 
     def __write_srt(self, sync_map, output_path):
         """
@@ -102,26 +104,50 @@ class Lyrics:
 
     def __bing_search_tekstowo(self):
         """
-        Searches bing for tekstowo lyrics
+        Searches Bing for Tekstowo lyrics using Selenium and undetected-chromedriver
         """
-
         query = f"site:tekstowo.pl {self.artist} {self.song_name}"
-        headers = {"User-Agent": "Mozilla/5.0"}
-        url = f"https://www.bing.com/search?q={requests.utils.quote(query)}"
-        response = requests.get(url, headers=headers)
-        if response.status_code != 200:
-            print("There was a problem fetching Bing")
+        search_url = "https://www.bing.com"
+
+        options = uc.ChromeOptions()
+        #options.add_argument("--headless")  # Usuń, jeśli chcesz widzieć okno przeglądarki
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+
+        driver = uc.Chrome(options=options)
+
+        try:
+            driver.get(search_url)
+            time.sleep(2)
+
+            # Wyszukiwanie
+            search_box = driver.find_element(By.NAME, "q")
+            search_box.send_keys(query)
+            search_box.send_keys(Keys.RETURN)
+            time.sleep(4)  # Czas na załadowanie wyników
+
+            # Zbieranie wyników
+            results = driver.find_elements(By.CSS_SELECTOR, "h2 > a")
+            for result in results:
+                href = result.get_attribute("href")
+                if href and "tekstowo.pl/piosenka," in href:
+                    return href
+
+            print("found no hrefs")
+            return None  # Jeśli nie znaleziono
+
+        except Exception as e:
+            print(f"Error during search: {e}")
             return None
 
-        soup = BeautifulSoup(response.text, "html.parser")
-        for li in soup.select("li.b_algo h2 a"):
-            href = li.get("href")
-            if href and "tekstowo.pl/piosenka," in href:
-                return href
+        finally:
+            driver.quit()
 
     def __get_tekstowo_lyrics(self):
         url = self.__bing_search_tekstowo()
-
+        if url == None:
+            return 
+        
         response = requests.get(url)
         if response.status_code != 200:
             return None
@@ -153,11 +179,9 @@ class Lyrics:
         """
         Searches genius for lyrics as a backup
         """
-
         try:
-            song = self.__genius.search_song(
-                self.song_name, self.artist
-            )
+            self.song_name = self.song_name.split("(")[0]
+            song = self.__genius.search_song(self.song_name, self.artist)
             if song and song.lyrics:
                 return self.__clean_genius_lyrics(song.lyrics)
         except Exception as e:

@@ -1,5 +1,11 @@
 import json
 import os
+
+from engine import Engine
+from lyrics import Lyrics
+from search import Search
+from download import Download
+
 from threading import Thread
 from time import sleep
 
@@ -17,7 +23,7 @@ def wait_for_download_end(downloader: Download):
         sleep(1)
 
     try:
-        engine.enqueue(f"{DOWNLOADS_PATH}/{downloader.get_name()}")
+        engine.enqueue(f"downloads/{downloader.get_name()}")
     except Exception as e:
         print(f"internal error while queueing song {e}")
     
@@ -126,4 +132,4 @@ async def search_song(query: str):
     """
     search = Search(query)
     # error handling
-    return search.results
+    return search.serialize()
