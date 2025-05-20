@@ -1,7 +1,7 @@
 import yt_dlp  # type: ignore
 from hashlib import sha256
 from concurrent import futures
-from os import makedirs
+import os
 from multiprocessing import cpu_count
 import json
 
@@ -30,7 +30,16 @@ class Download:
         self.link = link
         self.__name = sha256(link.encode()).hexdigest()
         song_dir = f"downloads/{self.__name}"
-        makedirs(song_dir, exist_ok=True)
+        
+        if os.path.isdir(song_dir):
+            def do_nothing():
+                ...
+
+            self.__downloader = self.__executor.submit(do_nothing)
+            self.__informator = self.__executor.submit(do_nothing)
+            return
+
+        os.makedirs(song_dir, exist_ok=True)
         song_file = f"{song_dir}/audio.%(ext)s"
         metadata_file = f"{song_dir}/metadata.json"
 
@@ -71,8 +80,6 @@ class Download:
         Awaits for end of downloading and returns directory name
         when it is finished
         """
-        self.__informator.result()
-        self.__downloader.result()
         if self.__name == "":
             raise Exception("Something gone wrong with your download")
         return self.__name
