@@ -6,6 +6,7 @@ import zipfile
 import os
 
 from engine import Engine
+from lyrics import Lyrics
 from search import Search
 from download import Download
 
@@ -18,9 +19,29 @@ def wait_for_download_end(downloader: Download):
 
     try:
         engine.enqueue(f"downloads/{downloader.get_name()}")
+<<<<<<< Updated upstream
     except Exception as e:
         print(f"internal error while queueing song {e}")
 
+=======
+        Thread(target = wait_for_engine_end_and_get_lyrics, args=(f"downloads/{downloader.get_name()}", )).start()
+    except Exception as e:
+        print(f"internal error while queueing song {e}")
+
+def wait_for_engine_end_and_get_lyrics(path: str):
+    while not engine.is_done(path):
+        sleep(1)
+    
+    try:
+        with open(f"{path}/metadata.json", mode="r") as file:
+            txt = file.read()
+            j = json.loads(txt)
+            title = j["title"]
+            lyrics = Lyrics("", title, path)
+            lyrics.is_done()
+    except Exception as e:
+        print(f"internal error while queueing song {e}")
+>>>>>>> Stashed changes
 
 app = FastAPI()
 engine = Engine()
