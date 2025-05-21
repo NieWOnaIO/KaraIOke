@@ -20,6 +20,9 @@ class Task:
         """
         Processes a single song inside queue
         """
+        if os.path.exists(os.path.join(self.__path, "htdemucs/audio/vocals.mp3")):
+            return
+
         demucs.separate.main(["--mp3", "--two-stems", "vocals", "-o", self.__path, os.path.join(self.__path, "audio.mp3")])
 
     def is_done(self) -> bool:
