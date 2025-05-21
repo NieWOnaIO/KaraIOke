@@ -25,7 +25,7 @@ def wait_for_download_end(downloader: Download):
 app = FastAPI()
 engine = Engine()
 
-@app.post("/v1/songs")
+@app.post("/v1/process_song")
 async def process_song(link):
     """
     Receives link to a song and directs it to download and process
@@ -55,7 +55,7 @@ async def get_songinfo(song_id: str):
     if not engine.is_done(path):
         return {"ready": False}
     
-    file = open(path, "r")
+    file = open(os.path.join(path, "metadata.json"), "r")
     metadata = json.load(file)
     file.close()
 
@@ -63,28 +63,36 @@ async def get_songinfo(song_id: str):
 
     return metadata
 
-@app.get("/v1/songs/{song_id}")
-async def get_songfile(song_id: str):
+@app.get("/v1/song_vocals/{song_id}")
+async def get_song_vocals(song_id: str):
     """
     Returns:
         payload: processed song along with metadata
     """
-    base_path = os.path.join("downloads", song_id, "htdemucs", "audio")
-    if not os.path.exists(os.path.join(base_path, "vocals.mp3")) or\
-        not os.path.exists(os.path.join(base_path, "no_vocals.mp3")):
+    path = os.path.join("downloads", song_id, "htdemucs", "audio", "vocals.mp3")
+    if not os.path.exists(path):
         raise HTTPException(status_code=404, detail="Path does not exist")
-    
-    zip_path = f"downloads/{song_id}"
-    zipf = zipfile.ZipFile(os.path.join(zip_path, "package.zip"), "w")
-    zipf.write(os.path.join(base_path, "vocals.mp3"), arcname="vocals.mp3")
-    zipf.write(os.path.join(base_path, "no_vocals.mp3"), arcname="no_vocals.mp3")
-    zipf.write(os.path.join(zip_path, "metadata.json"), arcname="metadata.json")
-    zipf.close()
 
     return FileResponse(
-        path=os.path.join(zip_path, "package.zip"),
-        filename="package.zip",
-        media_type="application/zip"
+        path=path,
+        filename="audio.mp3",
+        media_type="application/mp3"
+    )
+
+@app.get("/v1/song_no_vocals/{song_id}")
+async def get_song_no_vocals(song_id: str):
+    """
+    Returns:
+        payload: processed song along with metadata
+    """
+    path = os.path.join("downloads", song_id, "htdemucs", "audio", "no_vocals.mp3")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Path does not exist")
+    
+    return FileResponse(
+        path=path,
+        filename="audio.mp3",
+        media_type="application/mp3"
     )
 
 @app.get("/v1/search/{query}")
@@ -95,4 +103,4 @@ async def search_song(query: str):
     """
     search = Search(query)
     # error handling
-    return search.serialize()
+    return search.results
