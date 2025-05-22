@@ -3,6 +3,13 @@ import os
 import shutil
 import unittest
 import time
+
+from sys import path, argv
+from os.path import abspath
+from pathlib import Path
+
+path.insert(0, abspath(Path(argv[0]) / "../.."))
+
 from src.search import Search
 from src.download import Download
 from src.engine import Engine

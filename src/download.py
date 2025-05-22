@@ -56,6 +56,7 @@ class Download:
                 }
             ],
             "quiet": True,
+            "extractor-args": "youtube:player-skip=js",
         }
 
         with yt_dlp.YoutubeDL(ytdl_opts) as ytdl:
