@@ -82,7 +82,7 @@ class Engine:
         """
         Tells if song is ready to be downloaded
         """
-        return self.__tasks[path].is_done()
+        return path in self.__tasks and self.__tasks[path].is_done()
 
 
     def __cleanup_expired(self) -> int:
