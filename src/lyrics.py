@@ -10,28 +10,33 @@ from aeneas.task import Task
 from langdetect import detect
 from dotenv import load_dotenv
 
+
 class Lyrics:
     """
     Gets lyrics for the song in available sources and saves them .srt file
     Takes path to directory
     """
+
     load_dotenv()
     __threads = 1
     __executor = futures.ThreadPoolExecutor(__threads)
     __GENIUS_API_TOKEN = os.getenv("GENIUS_API_TOKEN")
-    __genius = lyricsgenius.Genius(__GENIUS_API_TOKEN, skip_non_songs=True, excluded_terms=["(Remix)", "(Live)"])
-    
+    __genius = lyricsgenius.Genius(
+        __GENIUS_API_TOKEN,
+        skip_non_songs=True,
+        excluded_terms=["(Remix)", "(Live)"],
+    )
+
     def __init__(self, artist: str, song_name: str, path: str):
         self.song_name = song_name
         self.artist = artist
         self.path = path
         self.success = True
         self.__lyricer = self.__executor.submit(self.__lyrics_wrapper)
-        
-        
+
     def is_done(self) -> bool:
         """
-        Awaits for end of creating lyrics map and returns when it's done and 
+        Awaits for end of creating lyrics map and returns when it's done and
         if everything has gone right
         """
         self.__lyricer.result()
@@ -40,7 +45,11 @@ class Lyrics:
     def __lyrics_wrapper(self):
         try:
             lyrics = self.__get_song_lyrics()
-            with open(os.path.join(self.path, "lyrics.txt"), "w", encoding="utf-8") as file:
+            with open(
+                os.path.join(self.path, "lyrics.txt"),
+                "w",
+                encoding="utf-8",
+            ) as file:
                 file.write(lyrics)
         except Exception as e:
             self.success = False
@@ -50,12 +59,18 @@ class Lyrics:
             language = detect(lyrics)
             config_string = f"task_language={language}|is_text_type=plain|os_task_file_format=srt"
             t = Task(config_string=config_string)
-            t.audio_file_path_absolute = os.path.join(self.path, "htdemucs", "audio", "vocals.mp3")
-            t.text_file_path_absolute = os.path.join(self.path, "lyrics.txt")
+            t.audio_file_path_absolute = os.path.join(
+                self.path, "htdemucs", "audio", "vocals.mp3"
+            )
+            t.text_file_path_absolute = os.path.join(
+                self.path, "lyrics.txt"
+            )
 
             ExecuteTask(t).execute()
 
-            self.__write_srt(t.sync_map, os.path.join(self.path, "lyrics.srt"))
+            self.__write_srt(
+                t.sync_map, os.path.join(self.path, "lyrics.srt")
+            )
             try:
                 os.remove(os.path.join(self.path, "lyrics.txt"))
             except Exception as e:
@@ -69,6 +84,7 @@ class Lyrics:
         """
         Converts sync map to .srt
         """
+
         def format_time(seconds):
             h = int(seconds // 3600)
             m = int((seconds % 3600) // 60)
@@ -80,8 +96,9 @@ class Lyrics:
             for i, fragment in enumerate(sync_map.fragments):
                 start = format_time(float(fragment.begin))
                 end = format_time(float(fragment.end))
-                f.write(f"{i+1}\n{start} --> {end}\n{fragment.text.strip()}\n\n")
-
+                f.write(
+                    f"{i + 1}\n{start} --> {end}\n{fragment.text.strip()}\n\n"
+                )
 
     def __bing_search_tekstowo(self):
         """
@@ -89,16 +106,14 @@ class Lyrics:
         """
 
         query = f"site:tekstowo.pl {self.artist} {self.song_name}"
-        headers = {
-            "User-Agent": "Mozilla/5.0"
-        }
+        headers = {"User-Agent": "Mozilla/5.0"}
         url = f"https://www.bing.com/search?q={requests.utils.quote(query)}"
         response = requests.get(url, headers=headers)
         if response.status_code != 200:
             print("There was a problem fetching Bing")
             return None
 
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(response.text, "html.parser")
         for li in soup.select("li.b_algo h2 a"):
             href = li.get("href")
             if href and "tekstowo.pl/piosenka," in href:
@@ -120,17 +135,19 @@ class Lyrics:
             br.replace_with("\n")
 
         lyrics = lyrics_div.get_text(separator="\n").strip()
-        lyrics = re.sub(r'\n{2,}', '\n', lyrics)
+        lyrics = re.sub(r"\n{2,}", "\n", lyrics)
         return self.__clean_tekstowo_lyrics(lyrics)
 
     def __delete_useless_lines(self, line):
-        if not line.startswith("Zwrotka") and not line.startswith("Refren"):
+        if not line.startswith("Zwrotka") and not line.startswith(
+            "Refren"
+        ):
             return line
-        
+
     def __clean_tekstowo_lyrics(self, raw_lyrics):
         lyrics = raw_lyrics.splitlines()
         lyrics = list(filter(self.__delete_useless_lines, lyrics))
-        return '\n'.join(lyrics[2:-2])
+        return "\n".join(lyrics[2:-2])
 
     def __get_genius_lyrics(self):
         """
@@ -138,7 +155,9 @@ class Lyrics:
         """
 
         try:
-            song = self.__genius.search_song(self.song_name, self.artist)
+            song = self.__genius.search_song(
+                self.song_name, self.artist
+            )
             if song and song.lyrics:
                 return self.__clean_genius_lyrics(song.lyrics)
         except Exception as e:
@@ -168,4 +187,6 @@ class Lyrics:
             return lyrics
 
         self.success = False
-        raise Exception(f"Unable to find lyrics for: {self.artist} - {self.song_name}")
+        raise Exception(
+            f"Unable to find lyrics for: {self.artist} - {self.song_name}"
+        )
