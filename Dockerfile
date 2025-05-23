@@ -12,13 +12,12 @@ RUN rm -rf /var/lib/apt/lists/*
 # first line makes torch install without cuda
 # for local environment and tests
 RUN sed -i '1d' /code/requirements.txt
-# is really much faster than pip
 RUN pip install --no-cache-dir --upgrade uv
 RUN uv pip install --no-cache-dir --upgrade --system -r /code/requirements.txt
-# this needs to be separate and yes, uv can't install this for some reason
+# this needs to be separate uv can't install this
 RUN pip install --no-cache-dir --upgrade aeneas
 
 COPY ./src /code
 EXPOSE 8000
 
-CMD ["uvicorn", "api_routes:app",  "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "api_routes:app", "--host", "0.0.0.0", "--port", "8000"]
