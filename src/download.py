@@ -31,7 +31,7 @@ class Download:
         self.__name = sha256(link.encode()).hexdigest()
         song_dir = f"downloads/{self.__name}"
         
-        if os.path.isdir(song_dir):
+        if os.path.exists(os.path.join(song_dir, "audio.mp3")):
             def do_nothing():
                 ...
 
