@@ -4,10 +4,12 @@ import os
 import shutil
 import demucs.separate
 
+
 class Task:
     """
     Class representing a single task
     """
+
     __threads = 1
     __executor = futures.ThreadPoolExecutor(__threads)
 
@@ -20,17 +22,28 @@ class Task:
         """
         Processes a single song inside queue
         """
-        if os.path.exists(os.path.join(self.__path, "htdemucs/audio/vocals.mp3")):
+        if os.path.exists(
+            os.path.join(self.__path, "htdemucs/audio/vocals.mp3")
+        ):
             return
 
-        demucs.separate.main(["--mp3", "--two-stems", "vocals", "-o", self.__path, os.path.join(self.__path, "audio.mp3")])
+        demucs.separate.main(
+            [
+                "--mp3",
+                "--two-stems",
+                "vocals",
+                "-o",
+                self.__path,
+                os.path.join(self.__path, "audio.mp3"),
+            ]
+        )
 
     def is_done(self) -> bool:
         """
         Tells if processing is done
         """
         return self.__worker.done()
-    
+
     def cleanup(self, now) -> bool:
         """
         Deletes directories and songs when they expire
@@ -51,6 +64,7 @@ class Engine:
         - Create engine: e = Engine() <br>
         - Enqueue songs on demand via e.enqueue()
     """
+
     def __init__(self):
         """
         Holds a collection of tasks left to complete, completed ones,
@@ -77,13 +91,11 @@ class Engine:
         self.__cleanup_expired()
         self.__tasks[path] = Task(path)
 
-
     def is_done(self, path) -> bool:
         """
         Tells if song is ready to be downloaded
         """
         return path in self.__tasks and self.__tasks[path].is_done()
-
 
     def __cleanup_expired(self) -> int:
         """

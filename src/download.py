@@ -30,10 +30,10 @@ class Download:
         self.link = link
         self.__name = sha256(link.encode()).hexdigest()
         song_dir = f"downloads/{self.__name}"
-        
+
         if os.path.exists(os.path.join(song_dir, "audio.mp3")):
-            def do_nothing():
-                ...
+
+            def do_nothing(): ...
 
             self.__downloader = self.__executor.submit(do_nothing)
             self.__informator = self.__executor.submit(do_nothing)
@@ -67,7 +67,9 @@ class Download:
                 with open(metadata_file, "w") as output:
                     json.dump(data, output, indent=4)
 
-            self.__downloader = self.__executor.submit(ytdl.download, [link])
+            self.__downloader = self.__executor.submit(
+                ytdl.download, [link]
+            )
             self.__informator = self.__executor.submit(helper)
 
     def is_ready(self) -> bool:
