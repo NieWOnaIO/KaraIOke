@@ -1,6 +1,7 @@
-from typing import List
-import yt_dlp
 import json
+from typing import List
+
+import yt_dlp
 
 
 class Search:

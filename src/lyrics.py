@@ -1,14 +1,14 @@
-from concurrent import futures
 import os
-import requests
-from bs4 import BeautifulSoup
 import re
+from concurrent import futures
+
 import lyricsgenius
-import re
+import requests
 from aeneas.executetask import ExecuteTask
 from aeneas.task import Task
-from langdetect import detect
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
+from langdetect import detect
 
 
 class Lyrics:
