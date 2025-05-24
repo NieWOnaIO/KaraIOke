@@ -6,7 +6,7 @@ from typing import Union
 
 import demucs.separate
 
-from download import Download
+from download import DOWNLOADS_PATH, Download
 
 
 class Task:
@@ -16,7 +16,7 @@ class Task:
 
     __threads = 1
     __executor = futures.ThreadPoolExecutor(__threads)
-    EXPIRATION_TIME = 10
+    EXPIRATION_TIME = 600
 
     def __init__(self, item):
         if type(item) is str:
@@ -82,7 +82,7 @@ class Task:
         if type(item) is str:
             # just in case
             if not os.path.isdir(item):
-                item = f"{Engine.DOWNLOADS_PATH}/{item}"
+                item = f"{DOWNLOADS_PATH}/{item}"
             if not os.path.isdir(item):
                 raise Exception("Path expected")
             return item
@@ -99,27 +99,15 @@ class Engine:
         - Enqueue songs on demand via e.enqueue()
     """
 
-    DOWNLOADS_PATH = "downloads"
-
-    def __init__(self):
+    def __init__(self, clean_on_startup: bool = True):
         """
         Holds a collection of tasks left to complete, completed ones,
         and processes them whenever possible.
         """
         self.__tasks: dict[str, Task] = {}
 
-        if not os.path.exists(Engine.DOWNLOADS_PATH):
-            return
-
-        # downloads cleanup
-        now = time.time()
-        for path in os.scandir(Engine.DOWNLOADS_PATH):
-            if path.is_dir():
-                expiration_time = (
-                    os.path.getmtime(path) + Task.EXPIRATION_TIME
-                )
-                if expiration_time <= now:
-                    shutil.rmtree(path)
+        if clean_on_startup:
+            shutil.rmtree(DOWNLOADS_PATH, True)
 
     def enqueue(self, item: Union[str, Download]):
         """

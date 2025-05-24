@@ -6,6 +6,8 @@ from multiprocessing import cpu_count
 
 import yt_dlp  # type: ignore
 
+DOWNLOADS_PATH = "downloads"
+
 
 def do_nothing():
     pass
@@ -34,7 +36,7 @@ class Download:
         """
         self.link = link
         self.__name = sha256(link.encode()).hexdigest()
-        song_dir = f"downloads/{self.__name}"
+        song_dir = f"{DOWNLOADS_PATH}/{self.__name}"
 
         if os.path.exists(song_dir):
             self.__worker = self.__executor.submit(do_nothing)
@@ -95,4 +97,4 @@ class Download:
         """
         Returns download directory name for engine
         """
-        return f"downloads/{str}"
+        return f"{DOWNLOADS_PATH}/{str}"
