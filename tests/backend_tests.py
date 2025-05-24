@@ -1,19 +1,18 @@
-import re
 import os
+import re
 import shutil
-import unittest
 import time
-
-from sys import path, argv
+import unittest
 from os.path import abspath
 from pathlib import Path
+from sys import argv, path
 
 path.insert(0, abspath(Path(argv[0]) / "../.."))
 path.insert(0, abspath(Path(argv[0]) / "../../src"))
 
-from src.search import Search
 from src.download import Download
 from src.engine import Engine
+from src.search import Search
 
 
 class TestSearch(unittest.TestCase):
@@ -73,7 +72,7 @@ class TestEngine(unittest.TestCase):
         """
         Tests if engine integration works correctly
         """
-        e = Engine()
+        e = Engine(False)
         dir = "b34263ce6e427d2f161f5bd52035682ae5a79bc1eeaa3616edcd7577d0870d5c"
         path = os.path.join("downloads", dir)
         e.enqueue(path)
