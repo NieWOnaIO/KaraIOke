@@ -1,16 +1,13 @@
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
-from fastapi import HTTPException
 import json
-import zipfile
 import os
+from time import sleep
 
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+
+from download import DOWNLOADS_PATH, Download
 from engine import Engine
 from search import Search
-from download import Download
-
-from threading import Thread
-from time import sleep
 
 
 def wait_for_download_end(downloader: Download):
@@ -18,7 +15,7 @@ def wait_for_download_end(downloader: Download):
         sleep(1)
 
     try:
-        engine.enqueue(f"downloads/{downloader.get_name()}")
+        engine.enqueue(f"{DOWNLOADS_PATH}/{downloader.get_name()}")
     except Exception as e:
         print(f"internal error while queueing song {e}")
 
@@ -36,13 +33,12 @@ async def process_song(link):
         json: unique song id based on youtube url
     """
     download = Download(link)
+    engine.enqueue(download)
 
     try:
         song_id = download.get_name()
     except Exception as e:
         return HTTPException(status_code=502, detail=e)
-
-    Thread(target=wait_for_download_end, args=(download,)).start()
 
     return {"song_id": song_id}
 
@@ -53,17 +49,15 @@ async def get_songinfo(song_id: str):
     Returns:
         json: whether song is ready to be downloaded from the server, expiry date...
     """
-    path = f"downloads/{song_id}"
+    path = Download.get_download_dir(song_id)
 
     if not engine.is_done(path):
         return {"ready": False}
 
-    file = open(os.path.join(path, "metadata.json"), "r")
-    metadata = json.load(file)
-    file.close()
+    with open(os.path.join(path, "metadata.json")) as file:
+        metadata = json.load(file)
 
     metadata["ready"] = True
-
     return metadata
 
 
@@ -74,7 +68,7 @@ async def get_song_vocals(song_id: str):
         payload: processed song along with metadata
     """
     path = os.path.join(
-        "downloads", song_id, "htdemucs", "audio", "vocals.mp3"
+        DOWNLOADS_PATH, song_id, "htdemucs", "audio", "vocals.mp3"
     )
     if not os.path.exists(path):
         raise HTTPException(
@@ -93,7 +87,7 @@ async def get_song_no_vocals(song_id: str):
         payload: processed song along with metadata
     """
     path = os.path.join(
-        "downloads", song_id, "htdemucs", "audio", "no_vocals.mp3"
+        DOWNLOADS_PATH, song_id, "htdemucs", "audio", "no_vocals.mp3"
     )
     if not os.path.exists(path):
         raise HTTPException(
