@@ -19,12 +19,7 @@ def wait_for_download_end(downloader: Download):
 
     try:
         engine.enqueue(f"downloads/{downloader.get_name()}")
-<<<<<<< Updated upstream
-    except Exception as e:
-        print(f"internal error while queueing song {e}")
-
-=======
-        Thread(target = wait_for_engine_end_and_get_lyrics, args=(f"downloads/{downloader.get_name()}", )).start()
+        wait_for_engine_end_and_get_lyrics(f"downloads/{downloader.get_name()}")
     except Exception as e:
         print(f"internal error while queueing song {e}")
 
@@ -41,7 +36,6 @@ def wait_for_engine_end_and_get_lyrics(path: str):
             lyrics.is_done()
     except Exception as e:
         print(f"internal error while queueing song {e}")
->>>>>>> Stashed changes
 
 app = FastAPI()
 engine = Engine()
@@ -76,7 +70,7 @@ async def get_songinfo(song_id: str):
     if not engine.is_done(path):
         return {"ready": False}
     
-    file = open(path, "r")
+    file = open(f"{path}/metadata.json", "r")
     metadata = json.load(file)
     file.close()
 

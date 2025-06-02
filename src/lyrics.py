@@ -82,8 +82,14 @@ class Lyrics:
 
         with open(output_path, "w", encoding="utf-8") as f:
             for i, fragment in enumerate(sync_map.fragments):
-                start = format_time(float(fragment.begin))
-                end = format_time(float(fragment.end))
+                adjusted_start = float(fragment.begin)
+                adjusted_end = float(fragment.end)
+                if i > 0:
+                    adjusted_start = max(0.0, adjusted_start - 0.5)
+                    adjusted_end -= 0.5
+
+                start = format_time(adjusted_start)
+                end = format_time(adjusted_end)
                 f.write(f"{i+1}\n{start} --> {end}\n{fragment.text.strip()}\n\n")
 
 
@@ -95,7 +101,12 @@ class Lyrics:
         search_url = "https://www.bing.com"
 
         options = uc.ChromeOptions()
-        #options.add_argument("--headless")  # Usuń, jeśli chcesz widzieć okno przeglądarki
+        options.add_argument('--headless=new')
+        options.add_argument('--disable-blink-features=AutomationControlled')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115 Safari/537.36")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
 
@@ -105,13 +116,11 @@ class Lyrics:
             driver.get(search_url)
             time.sleep(2)
 
-            # Wyszukiwanie
             search_box = driver.find_element(By.NAME, "q")
             search_box.send_keys(query)
             search_box.send_keys(Keys.RETURN)
-            time.sleep(4)  # Czas na załadowanie wyników
+            time.sleep(4)
 
-            # Zbieranie wyników
             results = driver.find_elements(By.CSS_SELECTOR, "h2 > a")
             for result in results:
                 href = result.get_attribute("href")
@@ -119,7 +128,7 @@ class Lyrics:
                     return href
 
             print("found no hrefs")
-            return None  # Jeśli nie znaleziono
+            return None
 
         except Exception as e:
             print(f"Error during search: {e}")
@@ -172,19 +181,16 @@ class Lyrics:
         return None
 
     def __clean_genius_lyrics(self, raw_lyrics):
-        match = re.search(r"\[Verse.*?\]", raw_lyrics)
-        if not match:
-            return raw_lyrics.strip()
-
-        start = match.start()
-        end_marker = re.search(r"\[Music Video\]", raw_lyrics)
-        end = end_marker.start() if end_marker else len(raw_lyrics)
-
-        cleaned = raw_lyrics[start:end].strip()
-
+        cleaned_lines = [
+            line for line in raw_lyrics.splitlines()
+            if not re.match(r"\[.*?(Verse|Chorus).*?\]", line, re.IGNORECASE)
+        ]
+        cleaned = "\n".join(cleaned_lines).strip()
         return cleaned
 
     def __get_song_lyrics(self):
+        if os.path.exists(f"{self.path}/lyrics.srt"):
+            return
         lyrics = self.__get_tekstowo_lyrics()
         if lyrics:
             return lyrics

@@ -14,22 +14,23 @@ class Task:
     def __init__(self, path):
         self.__expire_time = time.time() + 600
         self.__path = path
+        self.__done = False
         self.__worker = Task.__executor.submit(self.__process_wrapper)
 
     def __process_wrapper(self):
         """
         Processes a single song inside queue
         """
-        if os.path.exists(os.path.join(self.__path, "htdemucs/audio/vocals.mp3")):
+        vocals_path = os.path.join(self.__path, "htdemucs/audio/vocals.mp3")
+        if os.path.exists(vocals_path):
+            self.__done = True
             return
 
         demucs.separate.main(["--mp3", "--two-stems", "vocals", "-o", self.__path, os.path.join(self.__path, "audio.mp3")])
+        self.__done = True
 
     def is_done(self) -> bool:
-        """
-        Tells if processing is done
-        """
-        return self.__worker.done()
+        return self.__done
     
     def cleanup(self, now) -> bool:
         """
@@ -57,6 +58,11 @@ class Engine:
         and processes them whenever possible.
         """
         self.__tasks: dict[str, Task] = {}
+        path = "downloads"
+        for name in os.listdir(path):
+            full_path = os.path.join(path, name)
+            if os.path.isdir(full_path):
+                self.__tasks[full_path] = Task(full_path)
 
     def enqueue(self, path: str):
         """
