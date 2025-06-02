@@ -78,9 +78,10 @@ async def get_songinfo(song_id: str):
 
     if not engine.is_done(path):
         return {"ready": False}
-
-    with open(os.path.join(path, "metadata.json")) as file:
-        metadata = json.load(file)
+    
+    file = open(f"{path}/metadata.json", "r")
+    metadata = json.load(file)
+    file.close()
 
     metadata["ready"] = True
     return metadata

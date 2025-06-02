@@ -105,6 +105,11 @@ class Engine:
         and processes them whenever possible.
         """
         self.__tasks: dict[str, Task] = {}
+        path = "downloads"
+        for name in os.listdir(path):
+            full_path = os.path.join(path, name)
+            if os.path.isdir(full_path):
+                self.__tasks[full_path] = Task(full_path)
 
         if clean_on_startup:
             shutil.rmtree(DOWNLOADS_PATH, True)
