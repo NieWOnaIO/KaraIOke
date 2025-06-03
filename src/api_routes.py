@@ -164,4 +164,4 @@ async def search_song(query: str):
     """
     search = Search(query)
     # error handling
-    return search.serialize()
+    return search.results
