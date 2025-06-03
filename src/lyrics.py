@@ -60,6 +60,7 @@ class Lyrics:
             return print(f"wrapper: {e!s}")
 
         try:
+            print("Start processing using ananas...")
             language = detect(lyrics)
             config_string = f"task_language={language}|is_text_type=plain|os_task_file_format=srt"
             t = Task(config_string=config_string)
@@ -159,16 +160,18 @@ class Lyrics:
             driver.quit()
 
     def __get_tekstowo_lyrics(self):
+        print("Searching tekstowo...")
         url = self.__bing_search_tekstowo()
         if url is None:
             return
-
+        print("Got response from bing...")
         response = requests.get(url)
         if response.status_code != 200:
             return None
 
         soup = BeautifulSoup(response.text, "html.parser")
         lyrics_div = soup.find("div", {"class": "song-text"})
+        print("Fetching lyrics from tekstowo div...")
         if not lyrics_div:
             return None
 
@@ -195,6 +198,7 @@ class Lyrics:
         Searches genius for lyrics as a backup
         """
         try:
+            print("Searching genius...")
             self.song_name = self.song_name.split("(")[0]
             song = self.__genius.search_song(
                 self.song_name, self.artist
@@ -217,17 +221,21 @@ class Lyrics:
         return cleaned
 
     def __get_song_lyrics(self):
+        print("Searching for lyrics...")
         if os.path.exists(f"{self.path}/lyrics.srt"):
             return
         lyrics = self.__get_tekstowo_lyrics()
         if lyrics:
+            print("Found lyrics on tekstowo")
             return lyrics
 
         lyrics = self.__get_genius_lyrics()
         if lyrics:
+            print("Found lyrics on genius")
             return lyrics
 
         self.success = False
+        print(f"Unable to find lyrics for: {self.artist} - {self.song_name}")
         raise Exception(
             f"Unable to find lyrics for: {self.artist} - {self.song_name}"
         )
