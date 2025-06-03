@@ -30,9 +30,12 @@ def wait_for_download_end(downloader: Download):
         engine.enqueue(f"{DOWNLOADS_PATH}/{downloader.get_name()}")
     except Exception as e:
         print(f"internal error while queueing song {e}")
-    
-    wait_for_engine_end_and_get_lyrics(f"{DOWNLOADS_PATH}/{downloader.get_name()}")
-        
+
+    wait_for_engine_end_and_get_lyrics(
+        f"{DOWNLOADS_PATH}/{downloader.get_name()}"
+    )
+
+
 app = FastAPI()
 engine = Engine()
 
@@ -53,8 +56,8 @@ async def process_song(link):
     except Exception as e:
         return HTTPException(status_code=502, detail=e)
 
-    Thread(target = wait_for_download_end, args=(download, )).start()
-    
+    Thread(target=wait_for_download_end, args=(download,)).start()
+
     return {"song_id": song_id}
 
 
