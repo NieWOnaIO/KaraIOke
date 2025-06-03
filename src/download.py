@@ -1,8 +1,3 @@
-import yt_dlp  # type: ignore
-from hashlib import sha256
-from concurrent import futures
-import os
-from multiprocessing import cpu_count
 import json
 import os
 from concurrent import futures
@@ -41,17 +36,13 @@ class Download:
         """
         self.link = link
         self.__name = sha256(link.encode()).hexdigest()
-        song_dir = f"downloads/{self.__name}"
-        
-        if os.path.isdir(song_dir):
-            def do_nothing():
-                ...
+        song_dir = f"{DOWNLOADS_PATH}/{self.__name}"
 
-            self.__downloader = self.__executor.submit(do_nothing)
-            self.__informator = self.__executor.submit(do_nothing)
+        if os.path.exists(song_dir):
+            self.__worker = self.__executor.submit(do_nothing)
             return
 
-        os.makedirs(song_dir, exist_ok=True)
+        os.makedirs(song_dir)
         song_file = f"{song_dir}/audio.%(ext)s"
         metadata_file = f"{song_dir}/metadata.json"
 
@@ -67,12 +58,14 @@ class Download:
                     "preferredquality": "112k",
                 }
             ],
-            "quiet": True,
+            "quiet": False,
         }
 
         def helper():
             with yt_dlp.YoutubeDL(ytdl_opts) as ytdl:
                 info = ytdl.extract_info(link, download=False)
+                with open("info", "w") as output:
+                    json.dump(info, output, indent=4)
                 data = Download.parse_info(info, link)
                 with open(metadata_file, "w") as output:
                     json.dump(data, output, indent=4)
