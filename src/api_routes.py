@@ -116,23 +116,25 @@ async def get_song_no_vocals(song_id: str):
         path=path, filename="audio.mp3", media_type="application/mp3"
     )
 
+
 @app.get("/v1/lyrics/{song_id}")
 async def get_song_lyrics(song_id: str):
     """
     Returns:
         payload: lyrics.srt file
     """
-    path = os.path.join(
-        DOWNLOADS_PATH, song_id, "lyrics.srt"
-    )
+    path = os.path.join(DOWNLOADS_PATH, song_id, "lyrics.srt")
     if not os.path.exists(path):
         raise HTTPException(
             status_code=404, detail="Lyrics for this song do not exist!"
         )
 
     return FileResponse(
-        path=path, filename="lyrics.srt", media_type="application/x-subrip"
+        path=path,
+        filename="lyrics.srt",
+        media_type="application/x-subrip",
     )
+
 
 @app.get("/v1/metadata/{song_id}")
 async def get_song_metadata(song_id: str):
@@ -140,17 +142,19 @@ async def get_song_metadata(song_id: str):
     Returns:
         payload: song metadata
     """
-    path = os.path.join(
-        DOWNLOADS_PATH, song_id, "metadata.json"
-    )
+    path = os.path.join(DOWNLOADS_PATH, song_id, "metadata.json")
     if not os.path.exists(path):
         raise HTTPException(
-            status_code=404, detail="Metadata for this song does not exist!"
+            status_code=404,
+            detail="Metadata for this song does not exist!",
         )
 
     return FileResponse(
-        path=path, filename="metadata.json", media_type="application/json"
+        path=path,
+        filename="metadata.json",
+        media_type="application/json",
     )
+
 
 @app.get("/v1/search/{query}")
 async def search_song(query: str):
