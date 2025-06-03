@@ -9,6 +9,30 @@ from download import Download
 from threading import Thread
 from time import sleep
 
+def wait_for_download_end(downloader: Download):
+    while not downloader.is_ready():
+        sleep(1)
+
+    try:
+        engine.enqueue(f"downloads/{downloader.get_name()}")
+        wait_for_engine_end_and_get_lyrics(f"downloads/{downloader.get_name()}")
+    except Exception as e:
+        print(f"internal error while queueing song {e}")
+
+def wait_for_engine_end_and_get_lyrics(path: str):
+    while not engine.is_done(path):
+        sleep(1)
+    
+    try:
+        with open(f"{path}/metadata.json", mode="r") as file:
+            txt = file.read()
+            j = json.loads(txt)
+            title = j["title"]
+            lyrics = Lyrics("", title, path)
+            lyrics.is_done()
+    except Exception as e:
+        print(f"internal error while queueing song {e}")
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
