@@ -58,14 +58,12 @@ class Download:
                     "preferredquality": "112k",
                 }
             ],
-            "quiet": False,
+            "quiet": True,
         }
 
         def helper():
             with yt_dlp.YoutubeDL(ytdl_opts) as ytdl:
                 info = ytdl.extract_info(link, download=False)
-                with open("info", "w") as output:
-                    json.dump(info, output, indent=4)
                 data = Download.parse_info(info, link)
                 with open(metadata_file, "w") as output:
                     json.dump(data, output, indent=4)
