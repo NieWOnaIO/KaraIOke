@@ -1,17 +1,19 @@
 import os
 import re
+import time
 from concurrent import futures
-from langdetect import detect
+
 import lyricsgenius
 import requests
+import undetected_chromedriver as uc
 from aeneas.executetask import ExecuteTask
 from aeneas.task import Task
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-import undetected_chromedriver as uc
+from langdetect import detect
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-import time
+
 
 class Lyrics:
     """
@@ -55,7 +57,7 @@ class Lyrics:
                 file.write(lyrics)
         except Exception as e:
             self.success = False
-            return print(f"wrapper: {str(e)}")
+            return print(f"wrapper: {e!s}")
 
         try:
             language = detect(lyrics)
@@ -76,11 +78,11 @@ class Lyrics:
             try:
                 os.remove(os.path.join(self.path, "lyrics.txt"))
             except Exception as e:
-                print(f"remover: {str(e)}")
+                print(f"remover: {e!s}")
 
         except Exception as e:
             self.success = False
-            return print(f"ananas: {str(e)}")
+            return print(f"ananas: {e!s}")
 
     def __write_srt(self, sync_map, output_path):
         """
@@ -104,8 +106,9 @@ class Lyrics:
 
                 start = format_time(adjusted_start)
                 end = format_time(adjusted_end)
-                f.write(f"{i+1}\n{start} --> {end}\n{fragment.text.strip()}\n\n")
-
+                f.write(
+                    f"{i + 1}\n{start} --> {end}\n{fragment.text.strip()}\n\n"
+                )
 
     def __bing_search_tekstowo(self):
         """
@@ -115,12 +118,16 @@ class Lyrics:
         search_url = "https://www.bing.com"
 
         options = uc.ChromeOptions()
-        options.add_argument('--headless=new')
-        options.add_argument('--disable-blink-features=AutomationControlled')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-gpu')
-        options.add_argument('--disable-dev-shm-usage')
-        options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115 Safari/537.36")
+        options.add_argument("--headless=new")
+        options.add_argument(
+            "--disable-blink-features=AutomationControlled"
+        )
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument(
+            "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115 Safari/537.36"
+        )
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
 
@@ -153,9 +160,9 @@ class Lyrics:
 
     def __get_tekstowo_lyrics(self):
         url = self.__bing_search_tekstowo()
-        if url == None:
-            return 
-        
+        if url is None:
+            return
+
         response = requests.get(url)
         if response.status_code != 200:
             return None
@@ -189,7 +196,9 @@ class Lyrics:
         """
         try:
             self.song_name = self.song_name.split("(")[0]
-            song = self.__genius.search_song(self.song_name, self.artist)
+            song = self.__genius.search_song(
+                self.song_name, self.artist
+            )
             if song and song.lyrics:
                 return self.__clean_genius_lyrics(song.lyrics)
         except Exception as e:
@@ -198,8 +207,11 @@ class Lyrics:
 
     def __clean_genius_lyrics(self, raw_lyrics):
         cleaned_lines = [
-            line for line in raw_lyrics.splitlines()
-            if not re.match(r"\[.*?(Verse|Chorus).*?\]", line, re.IGNORECASE)
+            line
+            for line in raw_lyrics.splitlines()
+            if not re.match(
+                r"\[.*?(Verse|Chorus).*?\]", line, re.IGNORECASE
+            )
         ]
         cleaned = "\n".join(cleaned_lines).strip()
         return cleaned

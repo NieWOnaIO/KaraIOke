@@ -1,11 +1,16 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
 
 # project dependencies
-yt-dlp
+yt-dlp>=2025.05.22
 fastapi
 uvicorn[standard]
 demucs
+langdetect
+selenium
+dotenv
+beautifulsoup4
+lyricsgenius
+undetected-chromedriver
 
-# diagnostic/enchancing tools
-pylint
+# diagnostic tools
 ruff
