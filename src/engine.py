@@ -59,7 +59,7 @@ class Task:
         """
         return self.__worker.done()
 
-    def wait_for(self, path: str):
+    def wait_for(self):
         """
         Awaits for end of task
         """

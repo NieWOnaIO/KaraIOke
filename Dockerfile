@@ -12,6 +12,23 @@ RUN [ -n "$WITH_CUDA" ] && sed -i '1d' /code/requirements.txt || true
 RUN apt update -y
 # aeneas deps
 RUN apt install -y ffmpeg espeak espeak-data libespeak1 libespeak-dev
+
+# chromedriver installation (almost) from
+# https://datawookie.dev/blog/2023/12/chrome-chromedriver-in-docker/
+RUN apt-get update -qq -y && \
+    apt-get install -y \
+        libasound2 \
+        libatk-bridge2.0-0 \
+        libgtk-4-1 \
+        libnss3 \
+        xdg-utils \
+        chromium \
+        wget && \
+    wget -q -O chromedriver-linux64.zip https://bit.ly/chromedriver-linux64-121-0-6167-85 && \
+    unzip -j chromedriver-linux64.zip chromedriver-linux64/chromedriver && \
+    rm chromedriver-linux64.zip && \
+    mv chromedriver /usr/local/bin/
+
 RUN apt clean && rm -rf /var/lib/apt/lists/*
 # first line makes torch install without cuda
 # for local environment and tests
