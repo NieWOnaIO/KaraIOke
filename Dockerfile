@@ -1,6 +1,8 @@
 FROM python:3.9
 
 ARG WITH_CUDA=
+# Just in case (TM)
+ENV UV_HTTP_TIMEOUT=120
 
 WORKDIR /code
 

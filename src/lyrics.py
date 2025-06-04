@@ -3,14 +3,14 @@ import re
 import time
 from concurrent import futures
 
-import lyricsgenius
-import requests
-import undetected_chromedriver as uc
-from aeneas.executetask import ExecuteTask
-from aeneas.task import Task
+import lyricsgenius  # type: ignore
+import requests  # type: ignore
+import undetected_chromedriver as uc  # type: ignore
+from aeneas.executetask import ExecuteTask  # type: ignore
+from aeneas.task import Task  # type: ignore
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from langdetect import detect
+from langdetect import detect  # type: ignore
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
@@ -36,14 +36,14 @@ class Lyrics:
         self.artist = artist
         self.path = path
         self.success = True
-        self.__lyricer = self.__executor.submit(self.__lyrics_wrapper)
+        self.__worker = self.__executor.submit(self.__lyrics_wrapper)
 
     def is_done(self) -> bool:
         """
         Awaits for end of creating lyrics map and returns when it's done and
         if everything has gone right
         """
-        self.__lyricer.result()
+        self.__worker.result()
         return self.success
 
     def __lyrics_wrapper(self):
@@ -235,7 +235,9 @@ class Lyrics:
             return lyrics
 
         self.success = False
-        print(f"Unable to find lyrics for: {self.artist} - {self.song_name}")
+        print(
+            f"Unable to find lyrics for: {self.artist} - {self.song_name}"
+        )
         raise Exception(
             f"Unable to find lyrics for: {self.artist} - {self.song_name}"
         )

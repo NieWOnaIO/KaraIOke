@@ -11,6 +11,7 @@ dotenv
 beautifulsoup4
 lyricsgenius
 undetected-chromedriver
+setuptools<60
 
 # diagnostic tools
 ruff
