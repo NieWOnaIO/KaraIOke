@@ -1,23 +1,39 @@
 import json
 import os
-from time import sleep
+from threading import Thread
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
 from download import DOWNLOADS_PATH, Download
 from engine import Engine
+from lyrics import Lyrics
 from search import Search
 
 
-def wait_for_download_end(downloader: Download):
-    while not downloader.is_ready():
-        sleep(1)
+def wait_for_engine_end_and_get_lyrics(path: str):
+    engine.wait_for(path)
+    try:
+        with open(f"{path}/metadata.json") as file:
+            txt = file.read()
+            j = json.loads(txt)
+            title = j["title"]
+            lyrics = Lyrics("", title, path)
+            lyrics.is_done()
+    except Exception as e:
+        print(f"internal error while queueing song {e}")
 
+
+def wait_for_download_end(downloader: Download):
+    downloader.wait_for()
     try:
         engine.enqueue(f"{DOWNLOADS_PATH}/{downloader.get_name()}")
     except Exception as e:
         print(f"internal error while queueing song {e}")
+
+    wait_for_engine_end_and_get_lyrics(
+        f"{DOWNLOADS_PATH}/{downloader.get_name()}"
+    )
 
 
 app = FastAPI()
@@ -39,6 +55,8 @@ async def process_song(link):
         song_id = download.get_name()
     except Exception as e:
         return HTTPException(status_code=502, detail=e)
+
+    Thread(target=wait_for_download_end, args=(download,)).start()
 
     return {"song_id": song_id}
 
@@ -96,6 +114,45 @@ async def get_song_no_vocals(song_id: str):
 
     return FileResponse(
         path=path, filename="audio.mp3", media_type="application/mp3"
+    )
+
+
+@app.get("/v1/lyrics/{song_id}")
+async def get_song_lyrics(song_id: str):
+    """
+    Returns:
+        payload: lyrics.srt file
+    """
+    path = os.path.join(DOWNLOADS_PATH, song_id, "lyrics.srt")
+    if not os.path.exists(path):
+        raise HTTPException(
+            status_code=404, detail="Lyrics for this song do not exist!"
+        )
+
+    return FileResponse(
+        path=path,
+        filename="lyrics.srt",
+        media_type="application/x-subrip",
+    )
+
+
+@app.get("/v1/metadata/{song_id}")
+async def get_song_metadata(song_id: str):
+    """
+    Returns:
+        payload: song metadata
+    """
+    path = os.path.join(DOWNLOADS_PATH, song_id, "metadata.json")
+    if not os.path.exists(path):
+        raise HTTPException(
+            status_code=404,
+            detail="Metadata for this song does not exist!",
+        )
+
+    return FileResponse(
+        path=path,
+        filename="metadata.json",
+        media_type="application/json",
     )
 
 

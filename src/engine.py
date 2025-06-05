@@ -59,6 +59,12 @@ class Task:
         """
         return self.__worker.done()
 
+    def wait_for(self):
+        """
+        Awaits for end of task
+        """
+        self.__worker.result()
+
     def cleanup(self) -> bool:
         """
         Deletes directories and songs when they expire
@@ -132,6 +138,12 @@ class Engine:
         Tells if song is ready to be downloaded
         """
         return path in self.__tasks and self.__tasks[path].is_done()
+
+    def wait_for(self, path: str):
+        """
+        Awaits for end of processing
+        """
+        self.__tasks[path].wait_for()
 
     def __cleanup_expired(self) -> int:
         """
